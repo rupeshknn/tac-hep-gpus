@@ -24,6 +24,7 @@ class Particle{
 	public:
 	Particle();
 	// FIXME : Create an additional constructor that takes 4 arguments --> the 4-momentum
+	Particle (double, double, double, double);
 	double   pt, eta, phi, E, m, p[4];
 	void     p4(double, double, double, double);
 	void     print();
@@ -48,8 +49,14 @@ Particle::Particle(){
 }
 
 //*** Additional constructor ------------------------------------------------------
-Particle::Particle( ){ 
+Particle::Particle(int p0, int p1, int p2, int p3){
 	//FIXME
+	p[0] = p0;
+	p[1] = p1;
+	p[2] = p2;
+	p[3] = p3;
+	E = -p0;
+	m = sqrt(p0*p0 - p1*p1 - p2*p2 - p3*p3);
 }
 
 //
