@@ -95,8 +95,7 @@ void Particle::setMass(double mass)
 //*** Prints 4-vector ----------------------------------------------------------
 //
 void Particle::print(){
-	std::cout << std::endl;
-	std::cout << "(" << p[0] <<",\t" << p[1] <<",\t"<< p[2] <<",\t"<< p[3] << ")" << "  " <<  sintheta() << std::endl;
+	std::cout << "p4 = (" << p[0] <<",\t" << p[1] <<",\t"<< p[2] <<",\t"<< p[3] << ")" << "  sin(theta)=" <<  sintheta() << std::endl;
 }
 
 
@@ -118,13 +117,13 @@ class Jet : public Particle {
 	};
 };
 
-int main() {
+int main(int argc, char ** argv) {
 	
 	/* ************* */
 	/* Input Tree   */
 	/* ************* */
 
-	TFile *f      = new TFile("input.root","READ");
+	TFile *f  = new TFile(argv[1],"READ");
 	TTree *t1 = (TTree*)(f->Get("t1"));
 
 	// Read the variables from the ROOT tree branches
@@ -144,22 +143,25 @@ int main() {
 	// Total number of events in ROOT tree
 	Long64_t nentries = t1->GetEntries();
 
-	for (Long64_t jentry=0; jentry<100;jentry++)
+	for (Long64_t jentry=0; jentry<3;jentry++)
  	{
 		t1->GetEntry(jentry);
-		std::cout<<" Event "<< jentry <<std::endl;	
+		std::cout<<"\n\n Event "<< jentry <<std::endl;
 
 		//FIX ME
 		// cout << njets << ", " << sizeof(jetE)<< ", " << sizeof(lepE)<< ", " << endl;
+		cout << "\n Jet particles:" << endl;
 		for (Long_t part=0; part<sizeof(jetE); part++)
 		{
-			cout << " Jet particles" << endl;
 			Jet jet_object;
 			jet_object.p4(jetPt[part], jetEta[part], jetPhi[part], jetE[part]);
 			jet_object.set_flavor(jetHadronFlavour[part]);
 			jet_object.print();
+		}
 
-			cout << " Lepton particles" << endl;
+		cout << "\n Lepton particles:" << endl;
+		for (Long_t part=0; part<sizeof(jetE); part++)
+		{
 			Lepton lepton_object;
 			lepton_object.p4(lepPt[part], lepEta[part], lepPhi[part], lepE[part]);
 			lepton_object.set_charge(lepQ[part]);

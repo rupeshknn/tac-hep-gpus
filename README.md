@@ -1,20 +1,5 @@
-# Training to Advance Computational High Energy Physics in the Exascale Era (TAC-HEP)
-
-TAC-HEP is a recently funded multi-institutional (Princeton, UMass and UW-Madison) program in Computational High Energy Physics.
-
-## GPU training module  
-
-**Welcome to the GPU training module!**
-
-Programming for heterogeneous architectures (GPUs): The software & computing challenge of the HL-LHC era requires us to modernize software and design novel algorithms taking advantage of hardware accelerators (e.g. GPUs). This training module will introduce students to scientific computing on heterogeneous architectures and will discuss implications of heterogeneous hardware on the design and architecture of scientific software. Students will learn how to program for GPUs taking into account thread and memory organization and will assemble basic building blocks of a GPU program. 
-
-
-## Assignments 
-
-- **Week 2** [Introduction to C++](https://github.com/ckoraka/tac-hep-gpus/tree/main/week2)
-- **Week 3** [Introduction to CUDA](https://github.com/ckoraka/tac-hep-gpus/tree/main/week3)
-- **Week 4** [Introduction to CUDA (continued)](https://github.com/ckoraka/tac-hep-gpus/tree/main/week4)
-
-
-## Final project
-- Find description in [Project](https://github.com/ckoraka/tac-hep-gpus/tree/main/Project) directory.
+## HW 1 (week 2) Solutions from Rupesh Kannan (rupesh dot kannan at wisc dot edu)
+* Run exercise 1 using `g++ -g week2/Exercise1/swapper.cpp -o week2/Exercise1/swapper && week2/Exercise1/swapper`
+* Run exercise 2 using `g++ -g week2/Exercise2/students_ds.cpp -o week2/Exercise2/students_ds && week2/Exercise2/students_ds`
+* Run exercise 3 using `g++ -g week2/Exercise3/rps.cpp -o week2/Exercise3/rps && week2/Exercise3/rps`
+* Run exercise 4 using ``g++ -g week2/Exercise4/main.cc -o week2/Exercise4/main -I week2/Exercise4/hh `root-config --cflags --glibs` && week2/Exercise4/main week2/Exercise4/input.root``
