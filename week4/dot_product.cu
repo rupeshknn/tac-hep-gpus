@@ -32,7 +32,6 @@ __global__ void dot_product(const int *A, const int *B, int *C, int N) {
 	}
 }
 
-
 int main() {
 	
 	// Create the device and host pointers
