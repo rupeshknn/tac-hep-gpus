@@ -1,61 +1,86 @@
 #include <stdio.h>
 #include <stdlib.h> 
 
-const int DSIZE_X = 10;
-const int DSIZE_Y = 10;
-const int radius = 3;
-int main()
+
+int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
 {
     int *h_A, *h_B, *h_Ac, *h_Bc, *h_C;
     int print_num = 3;
     // Create and allocate memory for host and device pointers 
-    h_A = new int[DSIZE_X * DSIZE_Y];
-    h_B = new int[DSIZE_X * DSIZE_Y];
-    h_Ac = new int[DSIZE_X * DSIZE_Y];
-    h_Bc = new int[DSIZE_X * DSIZE_Y];
-    h_C = new int[DSIZE_X * DSIZE_Y];
+    h_A = new int[DSIZE * DSIZE];
+    h_B = new int[DSIZE * DSIZE];
+    h_Ac = new int[DSIZE * DSIZE];
+    h_Bc = new int[DSIZE * DSIZE];
+    h_C = new int[DSIZE * DSIZE];
 
     // Fill in the matrices
-    for (int i = 0; i < DSIZE_X; i++) {
-        for (int j = 0; j < DSIZE_Y; j++) {
-            h_A[i*DSIZE_X + j] = rand() % 10;
-            h_B[i*DSIZE_X + j] = rand() % 10;
-            h_Ac[i*DSIZE_X + j] = h_A[i*DSIZE_X + j];
-            h_Bc[i*DSIZE_X + j] = h_B[i*DSIZE_X + j];
-            h_C[i*DSIZE_X + j] = 0;
+    for (int i = 0; i < DSIZE; i++) {
+        for (int j = 0; j < DSIZE; j++) {
+            if (isrnad){
+                h_A[i*DSIZE + j] = rand() % 10;
+                h_B[i*DSIZE + j] = rand() % 10;
+            } else{
+                h_A[i*DSIZE + j] = 1;
+                h_B[i*DSIZE + j] = 1;
+            }
+            h_Ac[i*DSIZE + j] = h_A[i*DSIZE + j];
+            h_Bc[i*DSIZE + j] = h_B[i*DSIZE + j];
+            h_C[i*DSIZE + j] = 0;
         }
     }
     int tempA = 0, tempB = 0;
-    for (int idx = radius; idx < DSIZE_X-radius; idx++ ){
-        for (int idy = radius; idy < DSIZE_Y-radius; idy++ ){
-            tempA = -h_A[idx*DSIZE_X + idy];
-            tempB = -h_B[idx*DSIZE_X + idy];
+    for (int idx = radius; idx < DSIZE-radius; idx++ ){
+        for (int idy = radius; idy < DSIZE-radius; idy++ ){
+            tempA = -h_A[idx*DSIZE + idy];
+            tempB = -h_B[idx*DSIZE + idy];
             for (int idr = -radius; idr < radius+1; idr++ ){
-                tempA += h_A[(idx+idr)*DSIZE_X + idy] + h_A[idx*DSIZE_X + idy+idr];
-                tempB += h_B[(idx+idr)*DSIZE_X + idy] + h_B[idx*DSIZE_X + idy+idr];
+                tempA += h_A[(idx+idr)*DSIZE + idy] + h_A[idx*DSIZE + idy+idr];
+                tempB += h_B[(idx+idr)*DSIZE + idy] + h_B[idx*DSIZE + idy+idr];
             }
-            h_Ac[idx*DSIZE_X + idy] = tempA;
-            h_Bc[idx*DSIZE_X + idy] = tempB;
+            h_Ac[idx*DSIZE + idy] = tempA;
+            h_Bc[idx*DSIZE + idy] = tempB;
         }
     }
 
-    for (int i=0; i<DSIZE_X; i++){
-        for (int j=0; j<DSIZE_Y; j++){
-            h_C[i*DSIZE_X+j] = 0;
-            for (int k=0; k<DSIZE_X; k++){
-                h_C[i*DSIZE_X+j] += h_Ac[i*DSIZE_X+k]*h_Bc[k*DSIZE_X+j];
+    for (int i=0; i<DSIZE; i++){
+        for (int j=0; j<DSIZE; j++){
+            h_C[i*DSIZE+j] = 0;
+            for (int k=0; k<DSIZE; k++){
+                h_C[i*DSIZE+j] += h_Ac[i*DSIZE+k]*h_Bc[k*DSIZE+j];
             }
         }
     }
 
-    printf("C = [");
-    print_num = DSIZE_X;
+    return h_C;
+}
+
+int main(){
+    bool check = true;
+    int DSIZE;
+    int print_num = 10;
+    int * C;
+    if (check){
+        DSIZE = 10;
+        C = stencil_matmul(false, 1, DSIZE);
+        if (C[0] != 10)
+            printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,0, C[0], 10);
+        if (C[1] != 42)
+            printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,1, C[1], 42);
+        if (C[11] != 202)
+            printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 2,1, C[11], 202);
+    } else{
+        DSIZE = 512;
+        const int radius = 3;
+        C = stencil_matmul(true, radius, DSIZE);
+    }
+
+    printf("C = [\n");
     for (int i = 0; i < print_num; i++) {
         printf("     [");
         for (int j = 0; j < print_num; j++) {
-            printf("%3d, ", h_Ac[DSIZE_Y*j + i]);
+            printf("%3d, ", C[DSIZE*j + i]);
         }
-        printf("\b\b  ]\n");
+    printf("\b\b  ]\n");
     }
-    printf("]\n");
+    printf("    ]\n");
 }
