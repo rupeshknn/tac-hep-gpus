@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h> 
+#include <cstring>
 
 
 int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
@@ -51,11 +52,14 @@ int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
         }
     }
 
-    return h_C;
+    return h_Ac;
 }
 
-int main(){
-    bool check = true;
+int main(int argc, char const *argv[]){
+    bool check = false;
+    if ( strcmp( argv[1], "-check") == 0){
+        check = true;
+    }
     int DSIZE;
     int print_num = 10;
     int * C;
