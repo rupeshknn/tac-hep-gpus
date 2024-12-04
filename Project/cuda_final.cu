@@ -164,7 +164,7 @@ int* stencilMatmul(bool isRand, int radius, const int DSIZE) {
 
 int main(int argc, char const *argv[]) {
     bool check = false;
-    if ( strcmp( argv[1], "-check") == 0){
+    if ( argc > 1 && strcmp( argv[1], "-check") == 0){
         check = true;
     }
     int DSIZE;
@@ -180,7 +180,7 @@ int main(int argc, char const *argv[]) {
         if (C[11] != 202)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 2,1, C[11], 202);
     } else{
-        DSIZE = 512;
+        DSIZE = 10;
         const int radius = 3;
         C = stencilMatmul(true, radius, DSIZE);
     }

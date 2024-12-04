@@ -57,7 +57,7 @@ int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
 
 int main(int argc, char const *argv[]){
     bool check = false;
-    if ( strcmp( argv[1], "-check") == 0){
+    if ( argc > 1 && strcmp( argv[1], "-check") == 0){
         check = true;
     }
     int DSIZE;
