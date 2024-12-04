@@ -180,7 +180,7 @@ int main(int argc, char const *argv[]) {
         if (C[11] != 202)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 2,1, C[11], 202);
     } else{
-        DSIZE = 10;
+        DSIZE = 512;
         const int radius = 3;
         C = stencilMatmul(true, radius, DSIZE);
     }
