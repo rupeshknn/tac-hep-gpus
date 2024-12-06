@@ -1,6 +1,5 @@
 ./c_code.cpp
 ./cuda_code.cu
 ./cuda_mm.cu
-./cuda_opt.cu
 ./cuda_final.cu
 ./alpaka.cpp
