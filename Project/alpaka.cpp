@@ -1,4 +1,6 @@
 /*
+# Alpaka implementation.
+
 cuda compile: "nvcc -x cu -std=c++17 -O2 -g --expt-relaxed-constexpr -I$ALPAKA_BASE/include -DALPAKA_ACC_GPU_CUDA_ENABLED alpaka.cpp -o alpaka_cuda"
 run check: "./alpaka_cuda -check"
 run code with size 512 (default): "./alpaka_cuda"

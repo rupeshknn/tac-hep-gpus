@@ -1,8 +1,12 @@
 /*
+# Shared memory (both stencil and matrix-mul) and non-default cuda streams. 
+
 compile: "nvcc -o cuda_final cuda_final.cu"
 run check: "./cuda_final -check"
 run code with size 512 (default): "./cuda_final"
 run code with size 4096: "./cuda_final -size 4096"
+
+nsys comment: significantly faster and less time spent on mem alloc. 
 */
 
 #include <cuda.h>
