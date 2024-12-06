@@ -1,7 +1,13 @@
 /*
- * g++ -std=c++17 -O2 -g -I$ALPAKA_BASE/include -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED alpaka.cpp -o alpaka_cpu
- * 
-nvcc -x cu -std=c++17 -O2 -g --expt-relaxed-constexpr -I$ALPAKA_BASE/include -DALPAKA_ACC_GPU_CUDA_ENABLED alpaka.cpp -o alpaka_cuda
+cuda compile: "nvcc -x cu -std=c++17 -O2 -g --expt-relaxed-constexpr -I$ALPAKA_BASE/include -DALPAKA_ACC_GPU_CUDA_ENABLED alpaka.cpp -o alpaka_cuda"
+run check: "./alpaka_cuda -check"
+run code with size 512 (default): "./alpaka_cuda"
+run code with size 4096: "./alpaka_cuda -size 4096"
+
+cpu compile: "g++ -std=c++17 -O2 -g -I$ALPAKA_BASE/include -DALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED alpaka.cpp -o alpaka_cpu"
+run check: "./alpaka_cpu -check"
+run code with size 512 (default): "./alpaka_cpu"
+run code with size 2048: "./alpaka_cpu -size 2048"
  */
 
 #include <cassert>
@@ -12,6 +18,8 @@ nvcc -x cu -std=c++17 -O2 -g --expt-relaxed-constexpr -I$ALPAKA_BASE/include -DA
 
 #include "config.h"
 #include "WorkDiv.hpp"
+#include <chrono>
+
 
 struct stencil2D {
     template <typename TAcc, typename T>
@@ -63,10 +71,6 @@ struct matrixmul {
 
 // Host function
 void stencilMatmul(Host host, Platform platform, Device device, bool isRand, int radius, const int DSIZE, int* out) {
-    // random number generator with a gaussian distribution
-    // std::random_device rd{};
-    // std::default_random_engine rand{rd()};
-    // std::normal_distribution<float> dist{0., 1.};
 
     // 3-dimensional and linearised buffer size
     Vec2D ndsize = {DSIZE, DSIZE};
@@ -103,7 +107,7 @@ void stencilMatmul(Host host, Platform platform, Device device, bool isRand, int
     alpaka::memset(queue, d_C, 0x00);
 
     // launch the 3-dimensional kernel
-    auto div = makeWorkDiv<Acc2D>({5, 5}, {4, 4});
+    auto div = makeWorkDiv<Acc2D>({32, 32}, {16, 16});
     std::cout << "Testing VectorAddKernel3D with vector indices with a grid of "
             << alpaka::getWorkDiv<alpaka::Grid, alpaka::Blocks>(div) << " blocks x "
             << alpaka::getWorkDiv<alpaka::Block, alpaka::Threads>(div) << " threads x "
@@ -121,6 +125,7 @@ void stencilMatmul(Host host, Platform platform, Device device, bool isRand, int
 
     // wait for all the operations to complete
     alpaka::wait(queue);
+    // alpaka::memcpy(queue, out, h_C);
     for (uint32_t i = 0; i < size; ++i) {
         out[i] = h_C[i];
     }
@@ -145,39 +150,60 @@ int main(int argc, char const *argv[]) {
     std::cout << "Device: " << alpaka::getName(device) << '\n';
 
 
-    bool check = false;
-    if ( argc > 1 && strcmp( argv[1], "-check") == 0){
-        check = true;
+    bool check = false, dsize_set = false;
+    uint DSIZE;
+
+    if ( argc > 1){
+        if (strcmp( argv[1], "-check") == 0){
+            check = true;
+        }
+        if (strcmp( argv[1], "-size") == 0){
+            DSIZE = std::atoi(argv[2]);
+            dsize_set = true;
+        }
     }
-    int DSIZE;
     int print_num = 10;
     int * C;
     if (check){
         DSIZE = 10;
+        printf("Matrix Size - %d\n", DSIZE);
         C = new int[DSIZE * DSIZE];
         stencilMatmul(host, platform, device, false, 1, DSIZE, C);
         if (C[0] != 10)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,0, C[0], 10);
-        if (C[1] != 42)
+        else if (C[1] != 42)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,1, C[1], 42);
-        if (C[11] != 202)
+        else if (C[11] != 202)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 2,1, C[11], 202);
-    } else{
-        DSIZE = 512;
-        C = new int[DSIZE * DSIZE];
-        const int radius = 3;
-        stencilMatmul(host, platform, device, true, radius, DSIZE, C);
-    }
+        else
+            printf("Sucess!\n");
 
-    printf("C = [\n");
-    for (int i = 0; i < print_num; i++) {
-        printf("     [");
-        for (int j = 0; j < print_num; j++) {
-            printf("%3d, ", C[DSIZE*j + i]);
+        // print test result
+        printf("C = [\n");
+        for (int i = 0; i < print_num; i++) {
+            printf("     [");
+            for (int j = 0; j < print_num; j++) {
+                printf("%3d, ", C[DSIZE*j + i]);
+            }
+        printf("\b\b  ]\n");
         }
-    printf("\b\b  ]\n");
+        printf("    ]\n");
+    } else{
+        // set DSIZE from CLI arg.
+        DSIZE = dsize_set ? DSIZE: 512;
+        printf("Matrix Size - %d\n", DSIZE);
+
+        // Start clock
+        auto start = std::chrono::steady_clock::now();
+        const int radius = 3;
+        C = new int[DSIZE * DSIZE];
+        stencilMatmul(host, platform, device, true, radius, DSIZE, C);
+
+        // Stop clock
+        auto finish = std::chrono::steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+        printf("time to run = %.2f S\n\n", elapsed_seconds);
     }
-    printf("    ]\n");
     // Free host memory
     delete[] C;
 

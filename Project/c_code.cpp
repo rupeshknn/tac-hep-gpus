@@ -1,7 +1,16 @@
+/*
+
+compile: "c++ -o c_code c_code.cpp"
+run check: "./c_code -check"
+run code with size 512 (default): "./c_code"
+run code with size 2048: "./c_code -size 2048"
+
+*/
+
 #include <stdio.h>
 #include <stdlib.h> 
 #include <cstring>
-
+#include <chrono>
 
 int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
 {
@@ -52,15 +61,22 @@ int* stencil_matmul(bool isrnad, int radius, const int DSIZE)
         }
     }
 
-    return h_Ac;
+    return h_C;
 }
 
 int main(int argc, char const *argv[]){
-    bool check = false;
-    if ( argc > 1 && strcmp( argv[1], "-check") == 0){
-        check = true;
+    bool check = false, dsize_set = false;
+    uint DSIZE;
+
+    if ( argc > 1){
+        if (strcmp( argv[1], "-check") == 0){
+            check = true;
+        }
+        if (strcmp( argv[1], "-size") == 0){
+            DSIZE = std::atoi(argv[2]);
+            dsize_set = true;
+        }
     }
-    int DSIZE;
     int print_num = 10;
     int * C;
     if (check){
@@ -68,23 +84,34 @@ int main(int argc, char const *argv[]){
         C = stencil_matmul(false, 1, DSIZE);
         if (C[0] != 10)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,0, C[0], 10);
-        if (C[1] != 42)
+        else if (C[1] != 42)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 0,1, C[1], 42);
-        if (C[11] != 202)
+        else if (C[11] != 202)
             printf("Mismatch at index [%d,%d], was: %d, should be: %d\n", 2,1, C[11], 202);
+        else
+            printf("Sucess!\n");
+        
+        printf("C = [\n");
+        for (int i = 0; i < print_num; i++) {
+            printf("     [");
+            for (int j = 0; j < print_num; j++) {
+                printf("%3d, ", C[DSIZE*j + i]);
+            }
+        printf("\b\b  ]\n");
+        }
+        printf("    ]\n");
+
     } else{
-        DSIZE = 512;
+        DSIZE = dsize_set ? DSIZE: 512;
+        printf("the dsize is %d\n", DSIZE);
         const int radius = 3;
+        auto start = std::chrono::steady_clock::now();
+
         C = stencil_matmul(true, radius, DSIZE);
+
+        auto finish = std::chrono::steady_clock::now();
+        double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(finish - start).count();
+        printf("time to run = %.2f S\n\n", elapsed_seconds);
     }
 
-    printf("C = [\n");
-    for (int i = 0; i < print_num; i++) {
-        printf("     [");
-        for (int j = 0; j < print_num; j++) {
-            printf("%3d, ", C[DSIZE*j + i]);
-        }
-    printf("\b\b  ]\n");
-    }
-    printf("    ]\n");
 }
